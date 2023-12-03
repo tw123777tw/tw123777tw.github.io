@@ -26,7 +26,7 @@ function extractHumanLang(Node){
 				var L = P[p].list;
 				for(l in L){
 					if(L[l].code == 401){
-						T += L[l].parameters + "\n";
+						T += L[l].parameters[0] + "\n";
 						C.push([e,p,l]);
 					}
 				}
@@ -42,7 +42,7 @@ function injectHumanLang(){
 	N.pop();
 	if(N.length != C.length){alert("翻译后的文本行数不正确！");return;}
 	for(c in C){
-		O.events[C[c][0]].pages[C[c][1]].list[C[c][2]].parameters = [N[c]];
+		O.events[C[c][0]].pages[C[c][1]].list[C[c][2]].parameters[0] = N[c];
 	}
 	//ND.innerText = JSON.stringify(O);
 	var aTag = document.createElement('a');

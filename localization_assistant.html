@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>RMMV Data 翻译辅助工具浏览器版</title>
+<script type="text/javascript">
+var NT;
+var ND;
+var FN = "";
+var O = {};
+var C = [];
+function extractHumanLang(Node){
+	NT = Node.nextElementSibling.nextElementSibling;
+	ND = Node.nextElementSibling.nextElementSibling.nextElementSibling.nextElementSibling;
+	FN = Node.files[0].name;
+	C = [];
+	var fr = new FileReader();
+	fr.readAsText(Node.files[0]);
+	fr.onload = function() {
+		O = JSON.parse(this.result);
+		var E = O.events;
+		var T = '';
+		for(e in E){
+			if(E[e] == null) {continue;}
+			var P = E[e].pages;
+			for(p in P){
+				var L = P[p].list;
+				for(l in L){
+					if(L[l].code == 401){
+						T += L[l].parameters + "\n";
+						C.push([e,p,l]);
+					}
+				}
+			}
+		}
+		NT.value = T;
+		ND.innerText = JSON.stringify(C);
+	}
+}
+function injectHumanLang(){
+	if(C.length == 0){alert("JSON文件不需要翻译，请再选下一个！");return;}
+	var N = NT.value.split("\n");
+	N.pop();
+	if(N.length != C.length){alert("翻译后的文本行数不正确！");return;}
+	for(c in C){
+		O.events[C[c][0]].pages[C[c][1]].list[C[c][2]].parameters = [N[c]];
+	}
+	//ND.innerText = JSON.stringify(O);
+	var aTag = document.createElement('a');
+	aTag.download = FN;
+	aTag.href = URL.createObjectURL(new Blob([JSON.stringify(O)]));
+	aTag.click();
+}
+</script>
+</head>
+<body>
+<input type="file" onchange="extractHumanLang(this)" />
+<button onclick="injectHumanLang()">翻译完成后点我</button>
+<textarea style="width:100%" rows=20></textarea>
+<hr />
+<div></div>
+</body>
+</html>

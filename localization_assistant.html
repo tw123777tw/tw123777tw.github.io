@@ -3,18 +3,42 @@
 <head>
 <title>RMMV Data 翻译辅助工具浏览器版</title>
 <script type="text/javascript">
+var NF;
+var NC;
+var NI;
 var NT;
 var ND;
+function getNodes(){
+	NF = document.body.children[0];
+	NC = document.body.children[1].firstElementChild;
+	NI = document.body.children[2];
+	NT = document.body.children[4];
+	ND = document.body.children[6];
+}
 var FN = "";
-var O = {};
+var O;
 var C = [];
-function extractHumanLang(Node){
-	NT = Node.nextElementSibling.nextElementSibling;
-	ND = Node.nextElementSibling.nextElementSibling.nextElementSibling.nextElementSibling;
-	FN = Node.files[0].name;
+function postProcess(s){
+	var r;
+	try{eval("r = " + NI.value);}
+	catch(e){return e.toString();}
+	for (i in r){
+		s = s.replace(r[i][0],r[i][1]);
+	}
+	return s;
+}
+function extractHumanLang(){
 	C = [];
+	if(!NF.files[0]){
+		FN = "";
+		O = undefined;
+		NT.value = '';
+		ND.innerText = '';
+		return;
+	}
+	FN = NF.files[0].name;
 	var fr = new FileReader();
-	fr.readAsText(Node.files[0]);
+	fr.readAsText(NF.files[0]);
 	fr.onload = function() {
 		O = JSON.parse(this.result);
 		var E = O.events;
@@ -32,8 +56,8 @@ function extractHumanLang(Node){
 				}
 			}
 		}
-		NT.value = T;
-		ND.innerText = JSON.stringify(C);
+		NT.value = NC.checked ? postProcess(T) : T;
+		ND.innerText = '【' + C.length.toString() + '】\n' + JSON.stringify(C);
 	}
 }
 function injectHumanLang(){
@@ -52,8 +76,10 @@ function injectHumanLang(){
 }
 </script>
 </head>
-<body>
-<input type="file" onchange="extractHumanLang(this)" />
+<body onload="getNodes()">
+<input type="file" onchange="extractHumanLang()" />
+<label style="text-decoration:underline dotted" title="通常情况下，翻译引擎会打乱插件中定义的由多个字符组成的标记，但可以保留某些特殊符号，像标点符号一样自然地处理。&#10;二维数组定义replace函数执行参数，第一维度对应执行（次数），第二维度对应参数（个数）。&#10;***如果你懂得eval函数的原理，你甚至可以在这里为所欲为~***"><input type="checkbox" onchange="extractHumanLang()" />使用后处理</label>
+<input placeholder="eval(var r = ...)" value="[[/\\R/g,'☆'],[/\\N/g,'★']]" />
 <button onclick="injectHumanLang()">翻译完成后点我</button>
 <textarea style="width:100%" rows=20></textarea>
 <hr />

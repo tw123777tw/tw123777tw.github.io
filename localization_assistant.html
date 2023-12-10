@@ -18,12 +18,13 @@ function getNodes(){
 var FN = "";
 var O;
 var C = [];
-function postProcess(s){
+function postProcess(s, reverse){
 	var r;
 	try{eval("r = " + NI.value);}
 	catch(e){return e.toString();}
 	for (i in r){
-		s = s.replace(r[i][0],r[i][1]);
+		if(reverse){s = s.replace(new RegExp(r[i][1].replace('\\','\\\\'),'g'),r[i][0]);}
+		else{s = s.replace(new RegExp(r[i][0].replace('\\','\\\\'),'g'),r[i][1]);}
 	}
 	return s;
 }
@@ -62,13 +63,12 @@ function extractHumanLang(){
 }
 function injectHumanLang(){
 	if(C.length == 0){alert("JSON文件不需要翻译，请再选下一个！");return;}
-	var N = NT.value.split("\n");
+	var N = NC.checked ? postProcess(NT.value, true).split("\n") : NT.value.split("\n");
 	N.pop();
 	if(N.length != C.length){alert("翻译后的文本行数不正确！");return;}
 	for(c in C){
 		O.events[C[c][0]].pages[C[c][1]].list[C[c][2]].parameters[0] = N[c];
 	}
-	//ND.innerText = JSON.stringify(O);
 	var aTag = document.createElement('a');
 	aTag.download = FN;
 	aTag.href = URL.createObjectURL(new Blob([JSON.stringify(O)]));
@@ -78,8 +78,8 @@ function injectHumanLang(){
 </head>
 <body onload="getNodes()">
 <input type="file" onchange="extractHumanLang()" />
-<label style="text-decoration:underline dotted" title="通常情况下，翻译引擎会打乱插件中定义的由多个字符组成的标记，但可以保留某些特殊符号，像标点符号一样自然地处理。&#10;二维数组定义replace函数执行参数，第一维度对应执行（次数），第二维度对应参数（个数）。&#10;***如果你懂得eval函数的原理，你甚至可以在这里为所欲为~***"><input type="checkbox" onchange="extractHumanLang()" />使用后处理</label>
-<input placeholder="eval(var r = ...)" value="[[/\\R/g,'☆'],[/\\N/g,'★']]" />
+<label style="text-decoration:underline dotted" title="通常情况下，翻译引擎会打乱插件中定义的由多个字符组成的标记，但可以保留某些特殊符号，像标点符号一样自然地处理。&#10;二维数组定义后处理替换内容，外层对应替换枚举，内层对应替换前后内容。&#10;***如果你了解eval函数的工作原理，你甚至可以在这里为所欲为~***"><input type="checkbox" onchange="extractHumanLang()" />使用后处理</label>
+<input placeholder="eval(var r = ...)" value="[['\\R','☆'],['\\N','★']]" />
 <button onclick="injectHumanLang()">翻译完成后点我</button>
 <textarea style="width:100%" rows=20></textarea>
 <hr />

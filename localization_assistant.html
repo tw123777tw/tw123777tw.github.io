@@ -3,24 +3,27 @@
 <head>
 <title>RMMV Data 翻译辅助工具浏览器版</title>
 <script type="text/javascript">
-var NF;
 var NC;
 var NI;
+var NF;
 var NT;
 var ND;
 function getNodes(){
-	NF = document.body.children[0];
-	NC = document.body.children[1].firstElementChild;
-	NI = document.body.children[2];
-	NT = document.body.children[4];
-	ND = document.body.children[6];
+	NC = [document.getElementById("NC0"),document.getElementById("NC1")];
+	NI = [document.getElementById("NI0"),document.getElementById("NI1")];
+	NF = document.getElementById("NF");
+	NT = document.getElementById("NT");
+	ND = document.getElementById("ND");
 }
 var FN = "";
 var O;
 var C = [];
+var NC1 = false;
+var NI1 = 20;
+var NI1n = true;
 function postProcess(s, reverse){
 	var r;
-	try{eval("r = " + NI.value);}
+	try{eval("r = " + NI[0].value);}
 	catch(e){return e.toString();}
 	for (i in r){
 		if(reverse){s = s.replace(new RegExp(r[i][1].replace('\\','\\\\'),'g'),r[i][0]);}
@@ -44,6 +47,16 @@ function extractHumanLang(){
 		O = JSON.parse(this.result);
 		var E = O.events;
 		var T = '';
+		NC1 = NC[1].checked;
+		if(NC1 && NI[1].value){
+			NI1 = NI[1].value;
+			NI1n = parseInt(NI1) > 0;
+			if(NI1n){NI1 = parseInt(NI1);}
+		}else{
+			NI1 = 20;
+			NI1n = true;
+		}
+		var lo = {};
 		for(e in E){
 			if(E[e] == null) {continue;}
 			var P = E[e].pages;
@@ -51,23 +64,59 @@ function extractHumanLang(){
 				var L = P[p].list;
 				for(l in L){
 					if(L[l].code == 401){
+						if(NC1){
+							if(lo.code == 401){
+								T = T.slice(0,-1);
+								if(!NI1n){
+									T += NI1;
+								}
+								C[C.length - 1][2].push(l);
+							}else{
+								C.push([e,p,[l]]);
+							}
+						}else{
+							C.push([e,p,l]);
+						}
 						T += L[l].parameters[0] + "\n";
-						C.push([e,p,l]);
+					}
+					if(NC1){
+						lo = L[l];
 					}
 				}
 			}
 		}
-		NT.value = NC.checked ? postProcess(T) : T;
+		NT.value = NC[0].checked ? postProcess(T) : T;
 		ND.innerText = '【' + C.length.toString() + '】\n' + JSON.stringify(C);
 	}
 }
 function injectHumanLang(){
 	if(C.length == 0){alert("JSON文件不需要翻译，请再选下一个！");return;}
-	var N = NC.checked ? postProcess(NT.value, true).split("\n") : NT.value.split("\n");
+	var N = NC[0].checked ? postProcess(NT.value, true).split("\n") : NT.value.split("\n");
 	N.pop();
 	if(N.length != C.length){alert("翻译后的文本行数不正确！");return;}
 	for(c in C){
-		O.events[C[c][0]].pages[C[c][1]].list[C[c][2]].parameters[0] = N[c];
+		if(NC1){
+			var Nc = [];
+			if(NI1n){
+				var i = 0;
+				while(i < N[c].length){
+					Nc.push(N[c].slice(i,i += NI1));
+				}
+			}else{
+				Nc = N[c].split(NI1);
+			}
+			if(Nc.length != C[c][2].length){
+				if(Nc.length > C[c][2].length){
+					alert("第" + c + "行翻译解构后的文本行数变多，暂不支持此操作！");
+					return;
+				}
+			}
+			for(l in C[c][2]){
+				O.events[C[c][0]].pages[C[c][1]].list[C[c][2][l]].parameters[0] = Nc[l]? Nc[l]: '';
+			}
+		}else{
+			O.events[C[c][0]].pages[C[c][1]].list[C[c][2]].parameters[0] = N[c];
+		}
 	}
 	var aTag = document.createElement('a');
 	aTag.download = FN;
@@ -77,12 +126,20 @@ function injectHumanLang(){
 </script>
 </head>
 <body onload="getNodes()">
-<input type="file" onchange="extractHumanLang()" />
-<label style="text-decoration:underline dotted" title="通常情况下，翻译引擎会打乱插件中定义的由多个字符组成的标记，但可以保留某些特殊符号，像标点符号一样自然地处理。&#10;二维数组定义后处理替换内容，外层对应替换枚举，内层对应替换前后内容。&#10;***如果你了解eval函数的工作原理，你甚至可以在这里为所欲为~***"><input type="checkbox" onchange="extractHumanLang()" />使用后处理</label>
-<input placeholder="eval(var r = ...)" value="[['\\R','☆'],['\\N','★']]" />
+<div>
+<label style="text-decoration:underline dotted" title="通常情况下，翻译引擎会打乱插件中定义的由多个字符组成的标记，但可以保留某些特殊符号，像标点符号一样自然地处理。&#10;二维数组定义后处理替换内容，外层对应替换枚举，内层对应替换前后内容。&#10;***如果你了解eval函数的工作原理，你甚至可以在这里为所欲为~***"><input id="NC0" type="checkbox" onchange="extractHumanLang()" />使用后处理</label>
+<input id="NI0" placeholder="eval(var r = ...)" value="[['\\R','☆'],['\\N','★']]" />
+</div>
+<div>
+<label style="text-decoration:underline dotted" title="通常情况下，游戏作者为了将大量文本换行显示，会连续生成多个文本指令，它们原本应该是一段连续的内容。&#10;如果任由它们换行存放，大多数翻译引擎的翻译结果会发生割裂。&#10;可输入任意字符串作为换行记号，或者输入数字表示达到一定长度自动换行。&#10;注：一个英文字母的长度是1，一个汉字的长度也是1。当你考虑翻译成西文时，应适当增加此数值。"><input id="NC1" type="checkbox" onchange="extractHumanLang()" />换行文本整合</label>
+<input id="NI1" placeholder="20" value="↵" />
+</div>
+<div>
+<input id="NF" type="file" onchange="extractHumanLang()" />
 <button onclick="injectHumanLang()">翻译完成后点我</button>
-<textarea style="width:100%" rows=20></textarea>
+</div>
+<textarea id="NT" style="width:100%" rows=20></textarea>
 <hr />
-<div></div>
+<div id="ND"></div>
 </body>
 </html>

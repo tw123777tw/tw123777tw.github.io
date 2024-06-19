@@ -79,6 +79,12 @@ function extractHumanLang(){
 						}
 						T += L[l].parameters[0] + "\n";
 					}
+					if(L[l].code == 102){
+						for(pa in L[l].parameters[0]){
+							C.push([e,p,l,pa]);
+							T += L[l].parameters[0][pa] + "\n";
+						}
+					}
 					if(NC1){
 						lo = L[l];
 					}
@@ -115,7 +121,11 @@ function injectHumanLang(){
 				O.events[C[c][0]].pages[C[c][1]].list[C[c][2][l]].parameters[0] = Nc[l]? Nc[l]: '';
 			}
 		}else{
-			O.events[C[c][0]].pages[C[c][1]].list[C[c][2]].parameters[0] = N[c];
+			if(C[c][3]){
+				O.events[C[c][0]].pages[C[c][1]].list[C[c][2]].parameters[0][C[c][3]] = N[c];
+			}else{
+				O.events[C[c][0]].pages[C[c][1]].list[C[c][2]].parameters[0] = N[c];
+			}
 		}
 	}
 	var aTag = document.createElement('a');

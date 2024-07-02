@@ -116,6 +116,7 @@ function injectHumanLang(){
 		N[f] = NC[0].checked ? postProcess(N[f], true).split("\n") : N[f].split("\n");
 		N[f].pop();
 		if(N[f].length != C[f].length){if(confirm(FN[f] + "翻译后的文本行数不正确！停止下载？")){return;}else{continue;}}
+		if(C[f].length == 0){continue;}
 		for(c in C[f]){
 			if(NC1){
 				var Nc = [];

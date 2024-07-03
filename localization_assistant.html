@@ -67,9 +67,9 @@ function extractHumanLang(){
 				for(p in P){
 					var L = P[p].list;
 					for(l in L){
-						if(L[l].code == 401){
+						if(L[l].code == 401 || L[l].code == 405){
 							if(NC1){
-								if(lo.code == 401){
+								if(lo.code == L[l].code){
 									T = T.slice(0,-1);
 									if(!NI1n){
 										T += NI1;

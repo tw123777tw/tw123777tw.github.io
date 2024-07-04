@@ -171,7 +171,9 @@ function injectHumanLang(){
 		var aTag = document.createElement('a');
 		aTag.download = FN[f];
 		aTag.href = URL.createObjectURL(new Blob([JSON.stringify(O[f])]));
-		setTimeout(aTag.click(),(NC[3].checked && parseInt(NI[3].value)? parseInt(NI[3].value): 500)*f);
+		setTimeout((function(aTag){
+			return function(){aTag.click();}
+		})(aTag),(NC[3].checked && parseInt(NI[3].value)? parseInt(NI[3].value): 500)*f);
 	}
 }
 </script>

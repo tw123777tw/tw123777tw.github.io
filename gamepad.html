@@ -1,0 +1,37 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>游戏手柄</title>
+<script>
+var IB;
+var E;
+function gl(doc){
+	IB = doc.body;
+	E = doc.createEvent("UIEvents");
+}
+function kd(code){
+	E.keyCode = code;
+	E.initEvent("keydown", true, true);
+	IB.dispatchEvent(E);
+}
+function ku(code){
+	E.keyCode = code;
+	E.initEvent("keyup", true, true);
+	IB.dispatchEvent(E);
+}
+</script>
+</head>
+<body style="height:100%;margin:0px;overflow:hidden;user-select:none">
+<iframe src="data:text/html;base64,PG1ldGEgaHR0cC1lcXVpdj0iQ29udGVudC1UeXBlIiBjb250ZW50PSJ0ZXh0L2h0bWw7IGNoYXJzZXQ9VVRGLTgiPjxpbnB1dD48L2lucHV0PjxidXR0b24gb25jbGljaz0id2luZG93LmxvY2F0aW9uPXRoaXMucHJldmlvdXNFbGVtZW50U2libGluZy52YWx1ZSI+4pa2PC9idXR0b24+" style="width:100%;height:100%;border:0px" onload="if(window.location.search && this.src != window.location.search.slice(1)){this.src = window.location.search.slice(1);}gl(this.contentWindow.document)"></iframe>
+<table border=1 style="position:absolute;left:0;bottom:0;width:100px;height:100px;text-align:center;color:white;background-color:rgba(100,100,100,0.5)">
+<tr><td></td><td ontouchstart="kd(38)" ontouchend="ku(38)">^</td><td></td></tr>
+<tr><td ontouchstart="kd(37)" ontouchend="ku(37)">&lt;</td><td></td><td ontouchstart="kd(39)" ontouchend="ku(39)">&gt;</td></tr>
+<tr><td></td><td ontouchstart="kd(40)" ontouchend="ku(40)">v</td><td></td></tr>
+</table>
+<table border=1 style="position:absolute;right:0;bottom:0;width:100px;height:100px;text-align:center;color:white;background-color:rgba(100,100,100,0.5)">
+<tr><td ontouchstart="kd(13)" ontouchend="ku(13)">Ent</td><td ontouchstart="kd(27)" ontouchend="ku(27)">Esc</td></tr>
+<tr><td ontouchstart="kd(90)" ontouchend="ku(90)">Z</td><td ontouchstart="kd(88)" ontouchend="ku(88)">X</td></tr>
+</table>
+</body>
+</html>

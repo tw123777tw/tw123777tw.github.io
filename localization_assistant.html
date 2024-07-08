@@ -120,7 +120,7 @@ function extractHumanLang(){
 			}
 			//if(C[f].length == 0){alert(FN[f] + "不需要/不支持翻译！");}
 			NT.value += (NC[0].checked? postProcess(T, f): T) + (NC[2].checked? NI[2].value: '☆★☆★☆★☆★☆★') + '\n';
-			ND.innerText += '【' + C[f].length.toString() + '】\n' + JSON.stringify(C[f]) + '\n' + (NC[2].checked? NI[2].value: '☆★☆★☆★☆★☆★') + '\n';
+			ND.innerText += NF.files[f].name + '【' + C[f].length.toString() + '】\n' + JSON.stringify(C[f]) + '\n' + (NC[2].checked? NI[2].value: '☆★☆★☆★☆★☆★') + '\n';
 			if(++f < NF.files.length){rF(f);}
 		}
 	})(0);

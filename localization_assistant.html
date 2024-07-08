@@ -72,7 +72,7 @@ function extractHumanLang(){
 		fr.readAsText(NF.files[f]);
 		fr.onload = function(){
 			O[f] = JSON.parse(this.result);
-			var E = O[f].events;
+			var E = (FN[f] == 'Troops.json')? O[f] :O[f].events;
 			var T = '';
 			NC1 = NC[1].checked;
 			if(NC1 && NI[1].value){

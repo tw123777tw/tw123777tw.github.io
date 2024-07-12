@@ -70,10 +70,11 @@ function extractHumanLang(){
 		return;
 	}
 	(function rF(f){
+		var fr;
 		C[f] = [];
 		FN[f] = NF.files[f].name;
 		if(/Map...\.json/.test(FN[f]) || FN[f] == 'CommonEvents.json' || FN[f] == 'Troops.json'){
-			var fr = new FileReader();
+			fr = new FileReader();
 			fr.readAsText(NF.files[f]);
 			fr.onload = function(){
 				O[f] = JSON.parse(this.result);
@@ -109,12 +110,12 @@ function extractHumanLang(){
 								}else{
 									C[f].push([e,p,l]);
 								}
-								T += L[l].parameters[0] + "\n";
+								T += L[l].parameters[0] + '\n';
 							}
 							if(L[l].code == 102){
 								for(pa in L[l].parameters[0]){
 									C[f].push([e,p,l,pa]);
-									T += L[l].parameters[0][pa] + "\n";
+									T += L[l].parameters[0][pa] + '\n';
 								}
 							}
 							if(NC1){
@@ -123,7 +124,39 @@ function extractHumanLang(){
 						}
 					}
 				}
-				//if(C[f].length == 0){alert(FN[f] + "不需要/不支持翻译！");}
+				NT.value += (NC[0].checked? postProcess(T, f): T) + (NC[2].checked? NI[2].value: '☆★☆★☆★☆★☆★') + '\n';
+				ND.innerText += FN[f] + '【' + C[f].length.toString() + '】\n' + JSON.stringify(C[f]) + '\n' + (NC[2].checked? NI[2].value: '☆★☆★☆★☆★☆★') + '\n';
+				if(++f < NF.files.length){rF(f);}
+			}
+		}else if(['Armors.json','Skills.json','Items.json','Weapons.json'].indexOf(FN[f]) + 1){
+			fr = new FileReader();
+			fr.readAsText(NF.files[f]);
+			fr.onload = function(){
+				var T = '';
+				var r;
+				O[f] = JSON.parse(this.result);
+				NC1 = NC[1].checked;
+				if(NC1 && NI[1].value){
+					NI1 = NI[1].value;
+					NI1n = parseInt(NI1) > 0;
+					if(NI1n){NI1 = parseInt(NI1);}
+				}else{
+					NI1 = 20;
+					NI1n = true;
+				}
+				for(o in O[f]){
+					if(O[f][o]){
+						if(NC1){
+							C[f].push(o);
+							T += O[f][o].description.replace(/\n/g, NI1n? '': NI[1].value) + '\n';
+						}else{
+							for(r = O[f][o].description.split('\n').length;r;r--){
+								C[f].push(o);
+							}
+							T += O[f][o].description + '\n';
+						}
+					}
+				}
 				NT.value += (NC[0].checked? postProcess(T, f): T) + (NC[2].checked? NI[2].value: '☆★☆★☆★☆★☆★') + '\n';
 				ND.innerText += FN[f] + '【' + C[f].length.toString() + '】\n' + JSON.stringify(C[f]) + '\n' + (NC[2].checked? NI[2].value: '☆★☆★☆★☆★☆★') + '\n';
 				if(++f < NF.files.length){rF(f);}
@@ -147,37 +180,56 @@ function injectHumanLang(){
 	}
 	for(var f = 0; f < N.length; f++){
 		if(C[f].length == 0){continue;}
-		N[f] = NC[0].checked ? postProcess(N[f], f, true).split("\n") : N[f].split("\n");
+		N[f] = NC[0].checked ? postProcess(N[f], f, true).split('\n') : N[f].split('\n');
 		N[f].pop();
 		if(N[f].length != C[f].length){if(confirm(FN[f] + "翻译后的文本行数不正确！停止下载？")){return;}else{continue;}}
-		if(C[f].length == 0){continue;}
 		for(c in C[f]){
-			var E = (FN[f] == 'Troops.json' || FN[f] == 'CommonEvents.json')? O[f]: O[f].events;
-			var P = (FN[f] == 'CommonEvents.json')? E[C[f][c][0]]: E[C[f][c][0]].pages[C[f][c][1]];
-			if(NC1 && (!C[f][c][3])){
-				var Nc = [];
-				if(NI1n){
-					var i = 0;
-					while(i < N[f][c].length){
-						Nc.push(N[f][c].slice(i,i += NI1));
+			if(/Map...\.json/.test(FN[f]) || FN[f] == 'CommonEvents.json' || FN[f] == 'Troops.json'){
+				var E = (FN[f] == 'Troops.json' || FN[f] == 'CommonEvents.json')? O[f]: O[f].events;
+				var P = (FN[f] == 'CommonEvents.json')? E[C[f][c][0]]: E[C[f][c][0]].pages[C[f][c][1]];
+				if(NC1 && (!C[f][c][3])){
+					var Nc = [];
+					if(NI1n){
+						var i = 0;
+						while(i < N[f][c].length){
+							Nc.push(N[f][c].slice(i,i += NI1));
+						}
+					}else{
+						Nc = N[f][c].split(NI1);
+					}
+					if(Nc.length != C[f][c][2].length){
+						if(Nc.length > C[f][c][2].length){
+							alert("第" + c + "行翻译解构后的事件文本行数变多，暂不支持此操作！");
+							return;
+						}
+					}
+					for(l in C[f][c][2]){
+						P.list[C[f][c][2][l]].parameters[0] = Nc[l]? Nc[l]: '';
 					}
 				}else{
-					Nc = N[f][c].split(NI1);
-				}
-				if(Nc.length != C[f][c][2].length){
-					if(Nc.length > C[f][c][2].length){
-						alert("第" + c + "行翻译解构后的文本行数变多，暂不支持此操作！");
-						return;
+					if(C[f][c][3]){
+						P.list[C[f][c][2]].parameters[0][C[f][c][3]] = N[f][c];
+					}else{
+						P.list[C[f][c][2]].parameters[0] = N[f][c];
 					}
 				}
-				for(l in C[f][c][2]){
-					P.list[C[f][c][2][l]].parameters[0] = Nc[l]? Nc[l]: '';
-				}
-			}else{
-				if(C[f][c][3]){
-					P.list[C[f][c][2]].parameters[0][C[f][c][3]] = N[f][c];
+			}else if(['Armors.json','Skills.json','Items.json','Weapons.json'].indexOf(FN[f]) + 1){
+				if(NC1){
+					if(NI1n){
+						O[f][C[f][c]].description = "";
+						var i = 0;
+						while(i < N[f][c].length){
+							O[f][C[f][c]].description += N[f][c].slice(i,i += NI1) + '\n';
+						}
+					}else{
+						O[f][C[f][c]].description = N[f][c].replace(new RegExp(NI1,'g'),'\n');
+					}
 				}else{
-					P.list[C[f][c][2]].parameters[0] = N[f][c];
+					if(O[f][C[f][c]] == O[f][C[f][c - 1]]){
+						O[f][C[f][c]].description += '\n' + N[f][c];
+					}else{
+						O[f][C[f][c]].description = N[f][c];
+					}
 				}
 			}
 		}
@@ -193,20 +245,20 @@ function injectHumanLang(){
 </head>
 <body onload="getNodes()">
 <div>
-<label style="text-decoration:underline dotted" title="通常情况下，翻译引擎会打乱由多个字符组成的控制字符标记，但可以保留某些特殊符号，像标点符号一样自然地处理。&#10;二维数组定义后处理替换内容，外层对应替换枚举，内层对应替换前后内容。&#10;***如果你了解eval函数的工作原理，你甚至可以在这里为所欲为~***"><input id="NC0" type="checkbox" onchange="extractHumanLang()" />使用后处理</label>
+<label style="text-decoration:underline dotted" title="通常情况下，翻译引擎会打乱由多个字符组成的控制字符标记，但可以保留某些特殊符号，像标点符号一样自然地处理。&#10;二维数组定义后处理替换内容，外层对应替换枚举，内层对应替换内容和替换标记，替换内容可以使用字符串或正则表达式。&#10;该功能已流程化，即替换枚举会按顺序依次遍历全部内容。某些情况下，相同的字符串替换需要重复使用，这是被允许的。&#10;由于正则匹配需要储存原始内容，正则匹配的替换标记不允许重复，也不允许和字符串替换标记发生冲突。&#10;***此处使用了eval套壳。如果你了解eval函数的工作原理，你甚至可以在这里为所欲为~***"><input id="NC0" type="checkbox" onchange="extractHumanLang()" />使用后处理</label>
 <input id="NI0" placeholder="eval(var r = ...)" value="[[/\\V\[[^\]]+\]/,'Ⓥ'],[/\\N\[[^\]]+\]/,'Ⓝ'],[/\\P\[[^\]]+\]/,'Ⓟ'],['\\G','Ⓖ'],[/\\C\[[^\]]+\]/,'Ⓒ'],[/\\I\[[^\]]+\]/,'Ⓘ']]" />
 </div>
 <div>
-<label style="text-decoration:underline dotted" title="通常情况下，游戏作者为了将大量文本换行显示，会连续生成多个文本指令，它们原本应该是一段连续的内容。&#10;如果任由它们换行存放，大多数翻译引擎的翻译结果会发生割裂。&#10;可输入任意字符串作为换行记号，或者输入数字表示达到一定长度自动换行。&#10;注：一个英文字母的长度是1，一个汉字的长度也是1。当你考虑翻译成西文时，应适当增加此数值。"><input id="NC1" type="checkbox" onchange="extractHumanLang()" />换行文本整合</label>
+<label style="text-decoration:underline dotted" title="通常情况下，如果任由一段连续的内容换行存放，大多数翻译引擎会分开翻译。&#10;可输入任意字符串作为换行记号，或者输入数字表示达到一定长度自动换行。&#10;注：一个英文字母的长度是1，一个汉字的长度也是1。当你考虑翻译成西文时，应适当增加此数值。"><input id="NC1" type="checkbox" onchange="extractHumanLang()" />换行文本整合</label>
 <input id="NI1" placeholder="20" value="↵" />
 </div>
 <div>
-<label style="text-decoration:underline dotted" title="当默认标记与翻译文本冲突时进行调整。&#10;或者，处理单个文件时可以删除此标记。&#10;由于FileReader异步读取文件的特点，如同时处理多个文件出现对应错误，请逐个文件进行操作。"><input id="NC2" type="checkbox" onchange="extractHumanLang()" />调整文件分割标记</label>
+<label style="text-decoration:underline dotted" title="当默认标记与翻译文本冲突时进行调整。&#10;或者，处理单个文件时可以删除此标记。&#10;由于FileReader异步读取文件的特点，如果同时处理多个文件时发生意外错误，请逐个文件进行操作。"><input id="NC2" type="checkbox" onchange="extractHumanLang()" />调整文件分割标记</label>
 <input id="NI2" value="☆★☆★☆★☆★☆★" />
 </div>
 <div>
-<label style="text-decoration:underline dotted" title="单位：毫秒。&#10;数值过小会导致下载文件缺失，过大会导致不必要的下载等待时间。&#10;建议关闭浏览器的下载前询问保存位置功能。"><input id="NC3" type="checkbox" onchange="extractHumanLang()" />调整文件下载间隔</label>
-<input id="NI3" value="500" />
+<label style="text-decoration:underline dotted" title="单位：毫秒。&#10;数值过小会导致下载文件缺失，过大会导致不必要的下载等待时间。&#10;建议关闭浏览器的下载前询问保存位置功能。&#10;此项仅在点击完成按钮时生效。切换此项状态亦可用于重置对文本区域的所有修改。"><input id="NC3" type="checkbox" onchange="extractHumanLang()" />调整文件下载间隔</label>
+<input id="NI3"  placeholder="500" />
 </div>
 <div>
 <input id="NF" type="file" multiple onchange="extractHumanLang()" />
@@ -214,6 +266,6 @@ function injectHumanLang(){
 </div>
 <textarea id="NT" style="width:100%" rows=20></textarea>
 <hr />
-<div id="ND"></div>
+<div id="ND" style="overflow-wrap:break-word"></div>
 </body>
 </html>

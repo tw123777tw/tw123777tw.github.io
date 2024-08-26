@@ -69,6 +69,15 @@ function extractHumanLang(){
 		ND.innerText = '';
 		return;
 	}
+	NC1 = NC[1].checked;
+	if(NC1 && NI[1].value){
+		NI1 = NI[1].value;
+		NI1n = parseInt(NI1) > 0;
+		if(NI1n){NI1 = parseInt(NI1);}
+	}else{
+		NI1 = 20;
+		NI1n = true;
+	}
 	(function rF(f){
 		var fr;
 		C[f] = [];
@@ -80,15 +89,6 @@ function extractHumanLang(){
 				O[f] = JSON.parse(this.result);
 				var E = !/Map...\.json/.test(FN[f])? O[f]: O[f].events;
 				var T = '';
-				NC1 = NC[1].checked;
-				if(NC1 && NI[1].value){
-					NI1 = NI[1].value;
-					NI1n = parseInt(NI1) > 0;
-					if(NI1n){NI1 = parseInt(NI1);}
-				}else{
-					NI1 = 20;
-					NI1n = true;
-				}
 				var lo = {};
 				for(e in E){
 					if(E[e] == null) {continue;}
@@ -135,15 +135,6 @@ function extractHumanLang(){
 				var T = '';
 				var r;
 				O[f] = JSON.parse(this.result);
-				NC1 = NC[1].checked;
-				if(NC1 && NI[1].value){
-					NI1 = NI[1].value;
-					NI1n = parseInt(NI1) > 0;
-					if(NI1n){NI1 = parseInt(NI1);}
-				}else{
-					NI1 = 20;
-					NI1n = true;
-				}
 				for(o in O[f]){
 					if(O[f][o]){
 						if(NC1){
@@ -154,6 +145,61 @@ function extractHumanLang(){
 								C[f].push(o);
 							}
 							T += O[f][o].description + '\n';
+						}
+					}
+				}
+				NT.value += (NC[0].checked? postProcess(T, f): T) + (NC[2].checked? NI[2].value: '☆★☆★☆★☆★☆★') + '\n';
+				ND.innerText += FN[f] + '【' + C[f].length.toString() + '】\n' + JSON.stringify(C[f]) + '\n' + (NC[2].checked? NI[2].value: '☆★☆★☆★☆★☆★') + '\n';
+				if(++f < NF.files.length){rF(f);}
+			}
+		}/*else if(FN[f] == 'System.json'){
+			fr = new FileReader();
+			fr.readAsText(NF.files[f]);
+			fr.onload = function(){
+				var T = '';
+				O[f] = JSON.parse(this.result);
+				for(o in O[f].terms.messages){
+					T += O[f].terms.messages[o] + '\n';
+					C[f].push(['terms','messages',o]);
+				}
+				NT.value += (NC[0].checked? postProcess(T, f): T) + (NC[2].checked? NI[2].value: '☆★☆★☆★☆★☆★') + '\n';
+				ND.innerText += FN[f] + '【' + C[f].length.toString() + '】\n' + JSON.stringify(C[f]) + '\n' + (NC[2].checked? NI[2].value: '☆★☆★☆★☆★☆★') + '\n';
+				if(++f < NF.files.length){rF(f);}
+			}
+		}*/else if(FN[f] == 'Scenario.json'){//Saba_SimpleScenario.js
+			fr = new FileReader();
+			fr.readAsText(NF.files[f]);
+			fr.onload = function(){
+				var T = '';
+				var lo = {};
+				O[f] = JSON.parse(this.result);
+				for(p in O[f]){
+					var L = O[f][p];
+					for(l in L){
+						if(L[l].code == 401 || L[l].code == 405){
+							if(NC1){
+								if(lo.code == L[l].code){
+									T = T.slice(0,-1);
+									if(!NI1n){
+										T += NI1;
+									}
+									C[f][C[f].length - 1][1].push(l);
+								}else{
+									C[f].push([p,[l]]);
+								}
+							}else{
+								C[f].push([p,l]);
+							}
+							T += L[l].parameters[0] + '\n';
+						}
+						if(L[l].code == 102){
+							for(pa in L[l].parameters[0]){
+								C[f].push([p,l,pa]);
+								T += L[l].parameters[0][pa] + '\n';
+							}
+						}
+						if(NC1){
+							lo = L[l];
 						}
 					}
 				}
@@ -229,6 +275,36 @@ function injectHumanLang(){
 						O[f][C[f][c]].description += '\n' + N[f][c];
 					}else{
 						O[f][C[f][c]].description = N[f][c];
+					}
+				}
+			}/*else if(FN[f] == 'System.json'){
+				O[f][C[f][c][0]][C[f][c][1]][C[f][c][2]] = N[f][c];
+			}*/else if(FN[f] == 'Scenario.json'){
+				var P = O[f][C[f][c][0]];
+				if(NC1 && (!C[f][c][2])){
+					var Nc = [];
+					if(NI1n){
+						var i = 0;
+						while(i < N[f][c].length){
+							Nc.push(N[f][c].slice(i,i += NI1));
+						}
+					}else{
+						Nc = N[f][c].split(NI1);
+					}
+					if(Nc.length != C[f][c][1].length){
+						if(Nc.length > C[f][c][1].length){
+							alert("第" + c + "行翻译解构后的事件文本行数变多，暂不支持此操作！");
+							return;
+						}
+					}
+					for(l in C[f][c][1]){
+						P[C[f][c][1][l]].parameters[0] = Nc[l]? Nc[l]: '';
+					}
+				}else{
+					if(C[f][c][2]){
+						P[C[f][c][1]].parameters[0][C[f][c][2]] = N[f][c];
+					}else{
+						P[C[f][c][1]].parameters[0] = N[f][c];
 					}
 				}
 			}

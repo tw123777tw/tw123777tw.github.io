@@ -57,6 +57,65 @@ function postProcess(s, f, reverse){
 	}
 	return s;
 }
+function integrateText(L, Cf, Cp){
+	var T = '';
+	var lc = 0;
+	for(l in L){
+		if(L[l].code == 401 || L[l].code == 405){
+			if(NC1){
+				if(lc == L[l].code){
+					T = T.slice(0,-1);
+					if(!NI1n){
+						T += NI1;
+					}
+					Cf[Cf.length - 1][Cp.length].push(l);
+				}else{
+					Cf.push(Cp.concat([[l]]));
+				}
+			}else{
+				Cf.push(Cp.concat([l]));
+			}
+			T += L[l].parameters[0] + '\n';
+		}
+		if(L[l].code == 102){
+			for(pa in L[l].parameters[0]){
+				Cf.push(Cp.concat([l,pa]));
+				T += L[l].parameters[0][pa] + '\n';
+			}
+		}
+		if(NC1){
+			lc = L[l].code;
+		}
+	}
+	return T;
+}
+function separateText(L, T, C, Cl){
+	//var E = (FN[f] == 'Troops.json' || FN[f] == 'CommonEvents.json')? O[f]: O[f].events;
+	//var P = (FN[f] == 'CommonEvents.json')? E[C[f][c][0]]: E[C[f][c][0]].pages[C[f][c][1]];
+	if(Cl){
+		L[C].parameters[0][Cl] = T;
+	}else if(NC1){
+		var Nc = [];
+		if(NI1n){
+			var i = 0;
+			while(i < T.length){
+				Nc.push(T.slice(i,i += NI1));
+			}
+		}else{
+			Nc = T.split(NI1);
+		}
+		if(Nc.length != C.length){
+			if(Nc.length > C.length){
+				return T;
+			}
+		}
+		for(l in C){
+			L[C[l]].parameters[0] = Nc[l]? Nc[l]: '';
+		}
+	}else{
+		L[C].parameters[0] = T;
+	}
+}
 function extractHumanLang(){
 	FN = [];
 	O = [];
@@ -94,34 +153,7 @@ function extractHumanLang(){
 					if(E[e] == null) {continue;}
 					var P = (FN[f] == 'CommonEvents.json')? {'NA':E[e]}: E[e].pages;
 					for(p in P){
-						var L = P[p].list;
-						for(l in L){
-							if(L[l].code == 401 || L[l].code == 405){
-								if(NC1){
-									if(lo.code == L[l].code){
-										T = T.slice(0,-1);
-										if(!NI1n){
-											T += NI1;
-										}
-										C[f][C[f].length - 1][2].push(l);
-									}else{
-										C[f].push([e,p,[l]]);
-									}
-								}else{
-									C[f].push([e,p,l]);
-								}
-								T += L[l].parameters[0] + '\n';
-							}
-							if(L[l].code == 102){
-								for(pa in L[l].parameters[0]){
-									C[f].push([e,p,l,pa]);
-									T += L[l].parameters[0][pa] + '\n';
-								}
-							}
-							if(NC1){
-								lo = L[l];
-							}
-						}
+						T += integrateText(P[p].list, C[f], [e,p]);
 					}
 				}
 				NT.value += (NC[0].checked? postProcess(T, f): T) + (NC[2].checked? NI[2].value: '☆★☆★☆★☆★☆★') + '\n';
@@ -174,34 +206,7 @@ function extractHumanLang(){
 				var lo = {};
 				O[f] = JSON.parse(this.result);
 				for(p in O[f]){
-					var L = O[f][p];
-					for(l in L){
-						if(L[l].code == 401 || L[l].code == 405){
-							if(NC1){
-								if(lo.code == L[l].code){
-									T = T.slice(0,-1);
-									if(!NI1n){
-										T += NI1;
-									}
-									C[f][C[f].length - 1][1].push(l);
-								}else{
-									C[f].push([p,[l]]);
-								}
-							}else{
-								C[f].push([p,l]);
-							}
-							T += L[l].parameters[0] + '\n';
-						}
-						if(L[l].code == 102){
-							for(pa in L[l].parameters[0]){
-								C[f].push([p,l,pa]);
-								T += L[l].parameters[0][pa] + '\n';
-							}
-						}
-						if(NC1){
-							lo = L[l];
-						}
-					}
+					T += integrateText(O[f][p], C[f], [p]);
 				}
 				NT.value += (NC[0].checked? postProcess(T, f): T) + (NC[2].checked? NI[2].value: '☆★☆★☆★☆★☆★') + '\n';
 				ND.innerText += FN[f] + '【' + C[f].length.toString() + '】\n' + JSON.stringify(C[f]) + '\n' + (NC[2].checked? NI[2].value: '☆★☆★☆★☆★☆★') + '\n';
@@ -233,31 +238,10 @@ function injectHumanLang(){
 			if(/Map...\.json/.test(FN[f]) || FN[f] == 'CommonEvents.json' || FN[f] == 'Troops.json'){
 				var E = (FN[f] == 'Troops.json' || FN[f] == 'CommonEvents.json')? O[f]: O[f].events;
 				var P = (FN[f] == 'CommonEvents.json')? E[C[f][c][0]]: E[C[f][c][0]].pages[C[f][c][1]];
-				if(NC1 && (!C[f][c][3])){
-					var Nc = [];
-					if(NI1n){
-						var i = 0;
-						while(i < N[f][c].length){
-							Nc.push(N[f][c].slice(i,i += NI1));
-						}
-					}else{
-						Nc = N[f][c].split(NI1);
-					}
-					if(Nc.length != C[f][c][2].length){
-						if(Nc.length > C[f][c][2].length){
-							alert("第" + c + "行翻译解构后的事件文本行数变多，暂不支持此操作！");
-							return;
-						}
-					}
-					for(l in C[f][c][2]){
-						P.list[C[f][c][2][l]].parameters[0] = Nc[l]? Nc[l]: '';
-					}
-				}else{
-					if(C[f][c][3]){
-						P.list[C[f][c][2]].parameters[0][C[f][c][3]] = N[f][c];
-					}else{
-						P.list[C[f][c][2]].parameters[0] = N[f][c];
-					}
+				var ET = separateText(P.list, N[f][c], C[f][c][2], C[f][c][3]);
+				if(ET){
+					alert("文件" + FN[f] + "第" + c + "行翻译\n“" + ET + "”\n解构后的事件文本行数变多，暂不支持此操作！");
+					return;
 				}
 			}else if(['Armors.json','Skills.json','Items.json','Weapons.json'].indexOf(FN[f]) + 1){
 				if(NC1){
@@ -280,7 +264,12 @@ function injectHumanLang(){
 			}/*else if(FN[f] == 'System.json'){
 				O[f][C[f][c][0]][C[f][c][1]][C[f][c][2]] = N[f][c];
 			}*/else if(FN[f] == 'Scenario.json'){
-				var P = O[f][C[f][c][0]];
+				var ET = separateText(O[f][C[f][c][0]], N[f][c], C[f][c][1], C[f][c][2]);
+				if(ET){
+					alert("文件" + FN[f] + "第" + c + "行翻译\n“" + ET + "”\n解构后的事件文本行数变多，暂不支持此操作！");
+					return;
+				}
+				/*var P = O[f][C[f][c][0]];
 				if(NC1 && (!C[f][c][2])){
 					var Nc = [];
 					if(NI1n){
@@ -306,7 +295,7 @@ function injectHumanLang(){
 					}else{
 						P[C[f][c][1]].parameters[0] = N[f][c];
 					}
-				}
+				}*/
 			}
 		}
 		var aTag = document.createElement('a');

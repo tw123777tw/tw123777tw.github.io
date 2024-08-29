@@ -5,12 +5,17 @@
 <script type="text/javascript">
 var NC;
 var NI;
+var NL;
 var NF;
 var NT;
 var ND;
 function getNodes(){
 	NC = [document.getElementById("NC0"),document.getElementById("NC1"),document.getElementById("NC2"),document.getElementById("NC3")];
 	NI = [document.getElementById("NI0"),document.getElementById("NI1"),document.getElementById("NI2"),document.getElementById("NI3")];
+	NL = [];
+	NC[-1] = [document.getElementById("NC1_0")];
+	NI[-1] = [document.getElementById("NI1_0")];
+	NL[-1] = [document.getElementById("NL1_0")];
 	NF = document.getElementById("NF");
 	NT = document.getElementById("NT");
 	ND = document.getElementById("ND");
@@ -22,6 +27,7 @@ var NC1 = false;
 var NI1 = 20;
 var NI1n = true;
 var ppo = [];
+var sto = [];
 function postProcess(s, f, reverse){
 	var r;
 	var RE;
@@ -90,8 +96,6 @@ function integrateText(L, Cf, Cp){
 	return T;
 }
 function separateText(L, T, C, Cl){
-	//var E = (FN[f] == 'Troops.json' || FN[f] == 'CommonEvents.json')? O[f]: O[f].events;
-	//var P = (FN[f] == 'CommonEvents.json')? E[C[f][c][0]]: E[C[f][c][0]].pages[C[f][c][1]];
 	if(Cl){
 		L[C].parameters[0][Cl] = T;
 	}else if(NC1){
@@ -104,13 +108,33 @@ function separateText(L, T, C, Cl){
 		}else{
 			Nc = T.split(NI1);
 		}
-		if(Nc.length != C.length){
-			if(Nc.length > C.length){
+		if(Nc.length > C.length){
+			if(NC[-1][0].checked && Nc.length <= parseInt(NI[-1][0].value)){
+				for(l in C){
+					L[C[l]].parameters[0] = Nc[l];
+				}
+				var i = [L,L[C[l]]];
+				while(++l < Nc.length){
+					i.push(JSON.parse(JSON.stringify(i[1])));
+					i[i.length - 1].parameters[0] = Nc[l];
+				}
+				sto.push(i);
+			}else{
 				return T;
 			}
-		}
-		for(l in C){
-			L[C[l]].parameters[0] = Nc[l]? Nc[l]: '';
+		}else{
+			for(l in Nc){
+				L[C[l]].parameters[0] = Nc[l];
+			}
+			if(Nc.length < C.length){
+				if(NC[-1][0].checked){
+					sto.push([L,[L[C[Nc.length]], C.length - Nc.length]]);
+				}else{
+					while(++l < C.length){
+						L[C[l]].parameters[0] = '';
+					}
+				}
+			}
 		}
 	}else{
 		L[C].parameters[0] = T;
@@ -222,6 +246,7 @@ function extractHumanLang(){
 }
 function injectHumanLang(){
 	var N;
+	sto = [];
 	if(NC[2].checked && NI[2].value.length == 0){
 		N = [NT.value];
 	}else{
@@ -240,7 +265,7 @@ function injectHumanLang(){
 				var P = (FN[f] == 'CommonEvents.json')? E[C[f][c][0]]: E[C[f][c][0]].pages[C[f][c][1]];
 				var ET = separateText(P.list, N[f][c], C[f][c][2], C[f][c][3]);
 				if(ET){
-					alert("文件" + FN[f] + "第" + c + "行翻译\n“" + ET + "”\n解构后的事件文本行数变多，暂不支持此操作！");
+					alert("文件" + FN[f] + "第" + c + "行翻译\n“" + ET + "”\n解构后的事件文本行数发生变化且超出限制！");
 					return;
 				}
 			}else if(['Armors.json','Skills.json','Items.json','Weapons.json'].indexOf(FN[f]) + 1){
@@ -266,36 +291,18 @@ function injectHumanLang(){
 			}*/else if(FN[f] == 'Scenario.json'){
 				var ET = separateText(O[f][C[f][c][0]], N[f][c], C[f][c][1], C[f][c][2]);
 				if(ET){
-					alert("文件" + FN[f] + "第" + c + "行翻译\n“" + ET + "”\n解构后的事件文本行数变多，暂不支持此操作！");
+					alert("文件" + FN[f] + "第" + c + "行翻译\n“" + ET + "”\n解构后的事件文本行数发生变化且超出限制！");
 					return;
 				}
-				/*var P = O[f][C[f][c][0]];
-				if(NC1 && (!C[f][c][2])){
-					var Nc = [];
-					if(NI1n){
-						var i = 0;
-						while(i < N[f][c].length){
-							Nc.push(N[f][c].slice(i,i += NI1));
-						}
-					}else{
-						Nc = N[f][c].split(NI1);
-					}
-					if(Nc.length != C[f][c][1].length){
-						if(Nc.length > C[f][c][1].length){
-							alert("第" + c + "行翻译解构后的事件文本行数变多，暂不支持此操作！");
-							return;
-						}
-					}
-					for(l in C[f][c][1]){
-						P[C[f][c][1][l]].parameters[0] = Nc[l]? Nc[l]: '';
-					}
+			}
+		}
+		if(sto.length){
+			for(i in sto){
+				if(sto[i].length > 2){
+					Array.prototype.splice.apply(sto[i][0],[sto[i][0].indexOf(sto[i][1]) + 1,0].concat(sto[i].slice(2)));
 				}else{
-					if(C[f][c][2]){
-						P[C[f][c][1]].parameters[0][C[f][c][2]] = N[f][c];
-					}else{
-						P[C[f][c][1]].parameters[0] = N[f][c];
-					}
-				}*/
+					sto[i][0].splice(sto[i][0].indexOf(sto[i][1][0]),sto[i][1][1]);
+				}
 			}
 		}
 		var aTag = document.createElement('a');
@@ -314,8 +321,12 @@ function injectHumanLang(){
 <input id="NI0" placeholder="eval(var r = ...)" value="[[/\\V\[[^\]]+\]/,'Ⓥ'],[/\\N\[[^\]]+\]/,'Ⓝ'],[/\\P\[[^\]]+\]/,'Ⓟ'],['\\G','Ⓖ'],[/\\C\[[^\]]+\]/,'Ⓒ'],[/\\I\[[^\]]+\]/,'Ⓘ']]" />
 </div>
 <div>
-<label style="text-decoration:underline dotted" title="通常情况下，如果任由一段连续的内容换行存放，大多数翻译引擎会分开翻译。&#10;可输入任意字符串作为换行记号，或者输入数字表示达到一定长度自动换行。&#10;注：一个英文字母的长度是1，一个汉字的长度也是1。当你考虑翻译成西文时，应适当增加此数值。"><input id="NC1" type="checkbox" onchange="extractHumanLang()" />换行文本整合</label>
+<label style="text-decoration:underline dotted" title="通常情况下，如果任由一段连续的内容换行存放，大多数翻译引擎会分开翻译。&#10;可输入任意字符串作为换行记号，或者输入数字表示达到一定长度自动换行。&#10;仅针对code为401或405的连续指令生效。&#10;注：一个英文字母的长度是1，一个汉字的长度也是1。当你考虑翻译成西文时，应适当增加此数值。"><input id="NC1" type="checkbox" onchange="extractHumanLang();if(this.checked){NL[-1][0].style.color='';}else{NL[-1][0].style.color='grey';}" />换行文本整合</label>
 <input id="NI1" placeholder="20" value="↵" />
+</div>
+<div>
+<label id="NL1_0" style="text-decoration:underline dotted;margin-left:10px;color:grey" title="如果不勾选此项，当翻译的行数减少时，未指定的行会自动填入空字符串，且不能增加行数。&#10;增加行数通过复制原有指令实现，如不加以节制，文字可能会超出规定的渲染区域。&#10;输入一个整数限制行数的最大值（当行数未发生变化时，此值会被忽略）。"><input id="NC1_0" type="checkbox" onchange="extractHumanLang()" />允许改变行数</label>
+<input id="NI1_0" placeholder="20" value="4" />
 </div>
 <div>
 <label style="text-decoration:underline dotted" title="当默认标记与翻译文本冲突时进行调整。&#10;或者，处理单个文件时可以删除此标记。&#10;由于FileReader异步读取文件的特点，如果同时处理多个文件时发生意外错误，请逐个文件进行操作。"><input id="NC2" type="checkbox" onchange="extractHumanLang()" />调整文件分割标记</label>

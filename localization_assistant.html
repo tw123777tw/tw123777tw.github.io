@@ -49,19 +49,25 @@ function postProcess(s, f, reverse){
 	for (i in r){
 		if(r[i][0] instanceof RegExp){
 			if(reverse){
-				for(j in ppo[f][r[i][1]]){
-					s = s.replace(r[i][1],ppo[f][r[i][1]][j]);
+				if(r[i][1]){
+					for(j in ppo[f][r[i][1]]){
+						s = s.replace(r[i][1],ppo[f][r[i][1]][j]);
+					}
 				}
 			}
 			else{
 				if(ppo[f][r[i][1]]){return '后处理正则匹配替换标记发现重复！';}
 				RE = new RegExp(r[i][0],'g');
-				ppo[f][r[i][1]] = s.match(RE);
+				if(r[i][1]){
+					ppo[f][r[i][1]] = s.match(RE);
+				}
 				s = s.replace(RE,r[i][1]);
 			}
 		}else{
 			if(reverse){
-				s = s.replace(new RegExp(r[i][1].replace('\\','\\\\'),'g'),r[i][0]);
+				if(r[i][1]){
+					s = s.replace(new RegExp(r[i][1].replace('\\','\\\\'),'g'),r[i][0]);
+				}
 			}
 			else{
 				if(ppo[f][r[i][1]]){return '后处理字符串替换标记发现与正则匹配替换标记冲突！';}
